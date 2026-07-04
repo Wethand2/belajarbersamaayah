@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Petualangan Perkalian</title>
+<meta name="description" content="Belajar perkalian 1-10 dari benda konkret sampai hafal lancar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="topbar" class="topbar hidden">
+    <button id="btn-home" class="icon-btn" aria-label="Kembali ke peta">🗺️</button>
+    <div class="topbar-title" id="topbar-title">Petualangan Perkalian</div>
+    <div class="topbar-stats">
+      <span class="pill pill-star">⭐ <b id="hud-bintang">0</b></span>
+      <span class="pill pill-streak">🔥 <b id="hud-streak">0</b></span>
+    </div>
+  </header>
+
+  <main id="screen" class="screen" aria-live="polite"></main>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="confetti" class="confetti hidden" aria-hidden="true"></div>
+
+  <!-- Data (di-bundle sebagai JS agar bisa dibuka tanpa server / offline penuh) -->
+  <script src="js/config.js"></script>
+  <script src="data/kurikulum.js"></script>
+  <script src="data/kartu.js"></script>
+  <script src="data/misi.js"></script>
+  <script src="data/soal-cerita.js"></script>
+  <!-- Modul aplikasi -->
+  <script src="js/state.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/leitner.js"></script>
+  <script src="js/generator.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/manipulatif.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/screens2.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
