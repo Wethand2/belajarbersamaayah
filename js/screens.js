@@ -1,4 +1,4 @@
-// ====== LAYAR: ONBOARDING, PETA, MISI, SESI SOAL ======
+// ====== LAYAR: ONBOARDING, PETA (MULTI-OPERASI), MISI, SESI SOAL ======
 window.V = window.V || {};
 (function(){
   const scr = () => document.getElementById("screen");
@@ -11,53 +11,195 @@ window.V = window.V || {};
   }
   window.updateHud = hud;
 
-  // ---------- ONBOARDING ----------
-  V.onboarding = function(){
+  // ---------- SIGNUP (DAFTAR PETUALANG BARU) ----------
+  const opsiKelas = terpilih => [1,2,3,4,5,6].map(k=>
+    `<option value="${k}" ${k===terpilih?"selected":""}>Kelas ${k}</option>`).join("");
+
+  V.signup = function(){
     document.getElementById("topbar").classList.add("hidden");
     scr().innerHTML = `
       <div class="card center" style="margin-top:40px">
         <div style="font-size:64px">🚀</div>
-        <h1>Petualangan Perkalian</h1>
-        <p>Belajar perkalian 1–10, dari benda di rumah sampai hafal lancar!</p>
+        <h1>Petualangan Berhitung</h1>
+        <p>Belajar penjumlahan, pengurangan, perkalian, dan pembagian — dari benda di rumah sampai hafal lancar!</p>
       </div>
       <div class="card">
-        <h3>Siapa nama petualangnya?</h3>
+        <h3>Daftar petualang baru 🎒</h3>
         <label>Nama panggilan anak</label>
         <input type="text" id="ob-nama" maxlength="20" placeholder="contoh: Raka">
         <label>Kelas</label>
-        <select id="ob-kelas"><option value="2">Kelas 2</option><option value="3" selected>Kelas 3</option><option value="4">Kelas 4</option></select>
-        <button class="btn btn-accent" style="margin-top:10px" onclick="V._buatProfil()">Mulai Petualangan! 🎒</button>
+        <select id="ob-kelas">${opsiKelas(3)}</select>
+        <label>Buat PIN rahasia (4 angka)</label>
+        <input type="password" id="ob-pin" inputmode="numeric" maxlength="4" placeholder="••••">
+        <label>Ulangi PIN</label>
+        <input type="password" id="ob-pin2" inputmode="numeric" maxlength="4" placeholder="••••">
+        <button class="btn btn-accent" style="margin-top:10px" onclick="V._buatProfil()">Mulai Petualangan! 🚀</button>
+        ${State.raw.profils.length ? `<button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="App.go('login')">← Sudah punya akun? Masuk</button>` : ""}
       </div>`;
   };
+  V.onboarding = function(){ V.signup(); }; // kompatibilitas rute lama
+
   V._buatProfil = function(){
     const nama = document.getElementById("ob-nama").value.trim();
     if(!nama){ R.toast("Isi dulu nama panggilannya ya 😊"); return; }
-    State.addProfile(nama, document.getElementById("ob-kelas").value);
+    if(State.raw.profils.some(p => p.nama.toLowerCase() === nama.toLowerCase())){
+      R.toast("Nama itu sudah dipakai — pilih nama panggilan lain ya 😊"); return;
+    }
+    const pin  = document.getElementById("ob-pin").value.trim();
+    const pin2 = document.getElementById("ob-pin2").value.trim();
+    if(!/^\d{4}$/.test(pin)){ R.toast("PIN harus 4 angka ya 🔢"); return; }
+    if(pin !== pin2){ R.toast("PIN-nya belum sama — coba ulangi 😊"); return; }
+    const kelas = document.getElementById("ob-kelas").value;
+    State.addProfile(nama, kelas, pin);
+    // kelas 1-2 mulai di Pulau Penjumlahan, kelas 3+ di Pulau Perkalian
+    State.raw.opAktif = (parseInt(kelas,10) <= 2 && window.PULAU && window.PULAU.tambah) ? "tambah" : "kali";
+    State.raw.loggedIn = true;
+    State.save();
+    R.konfeti();
     App.go("peta");
   };
 
-  // ---------- PETA PETUALANGAN ----------
+  // ---------- LOGIN ----------
+  V.login = function(){
+    document.getElementById("topbar").classList.add("hidden");
+    const anak = State.raw.profils;
+    scr().innerHTML = `
+      <div class="card center" style="margin-top:40px">
+        <div style="font-size:64px">🚀</div>
+        <h1>Petualangan Berhitung</h1>
+        <p>Siapa yang mau berpetualang hari ini?</p>
+      </div>
+      <div class="card">
+        ${anak.map(p=>`
+          <button class="btn btn-ghost" style="width:100%;margin-bottom:8px;text-align:left" onclick="V._loginAnak('${p.id}')">
+            🧒 <b>${esc(p.nama)}</b> · kelas ${esc(p.kelas)}</button>`).join("")}
+        <button class="btn btn-accent btn-sm" style="margin-top:6px" onclick="App.go('signup')">➕ Petualang Baru (Daftar)</button>
+      </div>`;
+  };
+
+  V._loginAnak = function(id){
+    const p = State.raw.profils.find(x=>x.id===id);
+    if(!p) return;
+    if(!p.pin){ // profil lama (dibuat sebelum ada PIN): buat PIN sekali
+      scr().innerHTML = `
+        <div class="card center" style="margin-top:40px">
+          <div style="font-size:56px">🧒</div>
+          <h2>Halo, ${esc(p.nama)}!</h2>
+          <p class="small">Kamu belum punya PIN. Buat PIN rahasiamu dulu (sekali saja):</p>
+          <label>PIN baru (4 angka)</label>
+          <input type="password" id="login-pin" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;font-size:24px">
+          <label>Ulangi PIN</label>
+          <input type="password" id="login-pin2" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;font-size:24px">
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-ghost" onclick="App.go('login')">← Kembali</button>
+            <button class="btn btn-accent" onclick="V._buatPinLama('${p.id}')">Simpan & Masuk 🎒</button>
+          </div>
+        </div>`;
+      return;
+    }
+    scr().innerHTML = `
+      <div class="card center" style="margin-top:40px">
+        <div style="font-size:56px">🧒</div>
+        <h2>Halo, ${esc(p.nama)}!</h2>
+        <p class="small">Masukkan PIN rahasiamu:</p>
+        <input type="password" id="login-pin" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;font-size:24px">
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-ghost" onclick="App.go('login')">← Kembali</button>
+          <button class="btn btn-accent" onclick="V._loginCek('${p.id}')">Masuk 🎒</button>
+        </div>
+        <p class="small" style="margin-top:8px">Lupa PIN? Minta Ayah/Ibu membukanya lewat Area Orang Tua di dalam.</p>
+      </div>`;
+  };
+
+  V._loginCek = function(id){
+    const p = State.raw.profils.find(x=>x.id===id);
+    const v = document.getElementById("login-pin").value.trim();
+    if(!p || p.pin !== v){ R.toast("PIN salah — coba lagi ya 😊"); return; }
+    State.raw.activeId = id;
+    State.raw.loggedIn = true;
+    State.save();
+    App.go("peta");
+    Sync.flush();
+  };
+
+  V._buatPinLama = function(id){
+    const p = State.raw.profils.find(x=>x.id===id);
+    const pin  = document.getElementById("login-pin").value.trim();
+    const pin2 = document.getElementById("login-pin2").value.trim();
+    if(!/^\d{4}$/.test(pin)){ R.toast("PIN harus 4 angka ya 🔢"); return; }
+    if(pin !== pin2){ R.toast("PIN-nya belum sama — coba ulangi 😊"); return; }
+    p.pin = pin;
+    State.raw.activeId = id;
+    State.raw.loggedIn = true;
+    State.save();
+    R.toast("PIN tersimpan! Jangan lupa ya 🤫");
+    App.go("peta");
+  };
+
+  V._logout = function(){
+    State.raw.loggedIn = false;
+    State.save();
+    App.go("login");
+  };
+
+  // ---------- PETA PETUALANGAN (MULTI-OPERASI) ----------
+  // Registry pulau: tiap modul mendaftar { label, emoji, html() }.
+  window.PULAU = window.PULAU || {};
+
+  function opAktif(){
+    const S = State.raw;
+    return (S.opAktif && window.PULAU[S.opAktif]) ? S.opAktif : "kali";
+  }
+  V._pilihOp = function(op){
+    if(!window.PULAU[op]){ R.toast("Pulau ini sedang dibangun — segera hadir! 🚧"); return; }
+    State.raw.opAktif = op; State.save();
+    V.peta();
+  };
+
   V.peta = function(){
     document.getElementById("topbar").classList.remove("hidden");
     document.getElementById("topbar-title").textContent = "Peta Petualangan";
     hud();
     const p = State.P();
-    const aktif = State.levelAktif();
-    const due = State.kartuJatuhTempo().length;
-
+    const op = opAktif();
+    const daftar = [
+      ["tambah","➕","Tambah"], ["kurang","➖","Kurang"],
+      ["kali","✖️","Kali"], ["bagi","➗","Bagi"]
+    ];
+    const tombol = daftar.map(([id,em,lbl])=>{
+      const ada = !!window.PULAU[id];
+      const cls = op===id ? "btn-accent" : "btn-ghost";
+      return `<button class="btn btn-sm ${cls}" style="flex:1;min-width:72px" ${ada?`onclick="V._pilihOp('${id}')"`:"disabled"}>${em} ${lbl}${ada?"":" 🚧"}</button>`;
+    }).join("");
     let html = `
       <div class="card">
         <h2>Halo, ${esc(p.nama)}! 👋</h2>
-        <p class="small">Misi hari ini: <b>${KURIKULUM.level[aktif].nama}</b>${due?` · 🔔 ${due} kartu menunggu latihan`:""}</p>
+        <p class="small">Pilih operasi hitungmu:</p>
+        <div class="btn-row" style="margin-top:8px;flex-wrap:wrap">${tombol}</div>
         <div class="btn-row" style="margin-top:8px">
-          <button class="btn btn-accent btn-sm" onclick="App.go('${rute(aktif)}','${aktif}')">▶️ Main Sekarang</button>
           <button class="btn btn-ghost btn-sm" onclick="App.go('ortuPin')">👨‍👩‍👧 Orang Tua</button>
+          <button class="btn btn-ghost btn-sm" onclick="V._logout()">🚪 Keluar</button>
         </div>
+      </div>`;
+    html += window.PULAU[op].html();
+    scr().innerHTML = html;
+    window.scrollTo(0,0);
+  };
+
+  // ---------- PULAU PERKALIAN ----------
+  function htmlPulauKali(){
+    const aktif = State.levelAktif();
+    const due = State.kartuJatuhTempo().length;
+    let html = `
+      <div class="fase-header" style="margin-top:14px"><span class="badge">✖️</span>
+        <span><b>Pulau Perkalian</b> — dari benda nyata sampai hafal 1–10</span></div>
+      <div class="card">
+        <p class="small">Misi perkalianmu: <b>${KURIKULUM.level[aktif].nama}</b>${due?` · 🔔 ${due} kartu menunggu latihan`:""}</p>
+        <button class="btn btn-accent btn-sm" onclick="App.go('${rute(aktif)}','${aktif}')">▶️ Main Perkalian</button>
       </div>
       <div class="card">
         <h3>✨ Tabel Ajaibku</h3>${R.heatmap()}
       </div>`;
-
     KURIKULUM.fase.forEach(f=>{
       html += `<div class="fase-header"><span class="badge">${f.emoji}</span><span>${f.nama} — ${f.desc}</span></div><div class="level-path">`;
       KURIKULUM.urutan.filter(id=>KURIKULUM.level[id].fase===f.id).forEach(id=>{
@@ -77,9 +219,10 @@ window.V = window.V || {};
       });
       html += `</div>`;
     });
-    scr().innerHTML = html;
-    window.scrollTo(0,0);
-  };
+    return html;
+  }
+  window.PULAU.kali = { label:"Perkalian", emoji:"✖️", html: htmlPulauKali };
+
   function rute(id){
     const t = KURIKULUM.level[id].tipe;
     if(t==="misi") return "misi";
@@ -163,7 +306,7 @@ window.V = window.V || {};
     else { R.toast(`${benar}/${n} benar. Ulangi Misi 1.2, 1.3, dan 1.5 dulu ya, lalu coba lagi 💪`); }
   };
 
-  // ---------- MESIN SESI SOAL (dipakai Fase 2, 3, 5 & kartu) ----------
+  // ---------- MESIN SESI SOAL (dipakai semua modul) ----------
   // cfg: {judul, total, lulusMin|null, buatSoal(i), tipeLog, level, timer, onJawabPertama(soal,benar), onSelesai(hasil), tanpaUlang}
   V.mulaiSesi = function(cfg){
     const s = window._sesi = {
@@ -252,7 +395,7 @@ window.V = window.V || {};
     if(s.cfg.onSelesai) return s.cfg.onSelesai(hasil);
   }
 
-  // ---------- SESI LEVEL FASE 2 & 3 ----------
+  // ---------- SESI LEVEL FASE 2 & 3 (PERKALIAN) ----------
   V.sesi = function(levelId){
     const lv = KURIKULUM.level[levelId];
     V.mulaiSesi({

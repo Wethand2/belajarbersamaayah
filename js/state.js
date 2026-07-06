@@ -13,10 +13,11 @@ window.State = (function(){
 
   let S = null;
 
-  function blankProfile(nama, kelas){
+  function blankProfile(nama, kelas, pin){
     return {
       id: "anak_" + Math.random().toString(36).slice(2,8),
       nama, kelas,
+      pin: pin || null, // PIN login 4 angka (dibuat saat daftar / login pertama)
       bintang: 0,
       streak: 0,
       lastPlayDate: null,
@@ -45,8 +46,8 @@ window.State = (function(){
 
   const P = () => S.profils.find(p => p.id === S.activeId) || null;
 
-  function addProfile(nama, kelas){
-    const p = blankProfile(nama, kelas);
+  function addProfile(nama, kelas, pin){
+    const p = blankProfile(nama, kelas, pin);
     S.profils.push(p);
     S.activeId = p.id;
     save();
@@ -76,6 +77,8 @@ window.State = (function(){
     return jumlahSesiLulus(levelId) >= sesiDibutuhkan();
   }
   function levelTerbuka(levelId){
+    // Mode Uji Coba: SEMUA level terbuka agar orang tua bisa mencoba seluruh alur
+    if(S.testMode) return true;
     const idx = KURIKULUM.urutan.indexOf(levelId);
     if(idx === 0) return true;
     // Seluruh Fase 5 terbuka bersama begitu 4.9 lulus

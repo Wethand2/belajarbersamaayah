@@ -217,13 +217,15 @@
       ${p.rekor.length?`<div class="card"><h3>Rekor "Kalahkan Rekormu"</h3>${rekorChart}</div>`:""}
       <div class="card">
         <h3>Profil anak</h3>
-        ${S.profils.map(pr=>`<label class="check-row"><input type="radio" name="prof" ${pr.id===S.activeId?"checked":""} onclick="V._gantiProfil('${pr.id}')"><span><b>${esc(pr.nama)}</b> · kelas ${esc(pr.kelas)}</span></label>`).join("")}
+        ${S.profils.map(pr=>`<label class="check-row"><input type="radio" name="prof" ${pr.id===S.activeId?"checked":""} onclick="V._gantiProfil('${pr.id}')"><span><b>${esc(pr.nama)}</b> · kelas ${esc(pr.kelas)} ${pr.pin?"":"· <i>belum punya PIN</i>"}</span><button class="btn btn-ghost btn-sm" style="margin-left:auto" title="Reset PIN anak" onclick="event.preventDefault();V._resetPinAnak('${pr.id}')">🔑</button></label>`).join("")}
         <div class="btn-row"><input type="text" id="np-nama" placeholder="nama anak baru" style="flex:2">
+        <select id="np-kelas" style="flex:1">${[1,2,3,4,5,6].map(k=>`<option value="${k}" ${k===3?"selected":""}>Kelas ${k}</option>`).join("")}</select>
         <button class="btn btn-ghost btn-sm" style="flex:1" onclick="V._tambahProfil()">+ Tambah</button></div>
+        <p class="small">Anak baru membuat PIN-nya sendiri saat pertama kali masuk. Untuk mereset PIN anak, gunakan tombol 🔑 di sampingnya.</p>
       </div>
       <div class="card">
         <h3>Pengaturan</h3>
-        <label class="check-row"><input type="checkbox" id="tm" ${S.testMode?"checked":""} onclick="V._toggleTest()"><span><b>Mode Uji Coba</b> — lulus level cukup 1 sesi (untuk mencoba aplikasi; matikan saat anak belajar sungguhan)</span></label>
+        <label class="check-row"><input type="checkbox" id="tm" ${S.testMode?"checked":""} onclick="V._toggleTest()"><span><b>Mode Uji Coba</b> — SEMUA level terbuka & lulus cukup 1 sesi (untuk mencoba seluruh alur aplikasi; matikan saat anak belajar sungguhan)</span></label>
         <p class="small">Sinkronisasi: ${Sync.aktif() ? `aktif ✅ (antrean: ${S.syncQueue.length})` : "nonaktif — isi WEBAPP_URL di js/config.js untuk mengaktifkan backup Google Sheets"}</p>
         <div class="btn-row">
           <button class="btn btn-ghost btn-sm" onclick="Sync.flush();R.toast('Sinkronisasi dijalankan')">🔄 Sinkron Sekarang</button>
@@ -236,7 +238,17 @@
   V._tambahProfil = function(){
     const nama = document.getElementById("np-nama").value.trim();
     if(!nama) return R.toast("Isi nama dulu");
-    State.addProfile(nama, 3); App.go("ortu");
+    if(State.raw.profils.some(p => p.nama.toLowerCase() === nama.toLowerCase()))
+      return R.toast("Nama itu sudah dipakai — pilih nama lain");
+    const kelas = document.getElementById("np-kelas") ? document.getElementById("np-kelas").value : 3;
+    State.addProfile(nama, kelas); App.go("ortu");
+  };
+  V._resetPinAnak = function(id){
+    const p = State.raw.profils.find(x=>x.id===id);
+    if(!p) return;
+    if(!confirm(`Reset PIN ${p.nama}? Anak akan membuat PIN baru saat masuk berikutnya.`)) return;
+    p.pin = null; State.save();
+    R.toast(`PIN ${p.nama} direset 🔑`); App.go("ortu");
   };
   V._toggleTest = function(){ State.raw.testMode = document.getElementById("tm").checked; State.save(); };
   V._resetProfil = function(){

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Petualangan Perkalian</title>
-<meta name="description" content="Belajar perkalian 1-10 dari benda konkret sampai hafal lancar.">
+<title>Petualangan Berhitung</title>
+<meta name="description" content="Belajar penjumlahan, perkalian, dan pembagian dari benda konkret sampai hafal lancar.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 <body>
   <header id="topbar" class="topbar hidden">
     <button id="btn-home" class="icon-btn" aria-label="Kembali ke peta">🗺️</button>
-    <div class="topbar-title" id="topbar-title">Petualangan Perkalian</div>
+    <div class="topbar-title" id="topbar-title">Petualangan Berhitung</div>
     <div class="topbar-stats">
       <span class="pill pill-star">⭐ <b id="hud-bintang">0</b></span>
       <span class="pill pill-streak">🔥 <b id="hud-streak">0</b></span>
@@ -31,6 +31,21 @@
   <script src="data/kartu.js"></script>
   <script src="data/misi.js"></script>
   <script src="data/soal-cerita.js"></script>
+  <!-- Modul Pembagian: data -->
+  <script src="data/kurikulum-pembagian.js"></script>
+  <script src="data/kartu-pembagian.js"></script>
+  <script src="data/misi-pembagian.js"></script>
+  <script src="data/soal-cerita-pembagian.js"></script>
+  <!-- Modul Penjumlahan: data -->
+  <script src="data/kurikulum-penjumlahan.js"></script>
+  <script src="data/kartu-penjumlahan.js"></script>
+  <script src="data/misi-penjumlahan.js"></script>
+  <script src="data/soal-cerita-penjumlahan.js"></script>
+  <!-- Modul Pengurangan: data (kartu HARUS setelah kartu-penjumlahan) -->
+  <script src="data/kurikulum-pengurangan.js"></script>
+  <script src="data/kartu-pengurangan.js"></script>
+  <script src="data/misi-pengurangan.js"></script>
+  <script src="data/soal-cerita-pengurangan.js"></script>
   <!-- Modul aplikasi -->
   <script src="js/state.js"></script>
   <script src="js/sync.js"></script>
@@ -40,6 +55,11 @@
   <script src="js/manipulatif.js"></script>
   <script src="js/screens.js"></script>
   <script src="js/screens2.js"></script>
+  <!-- Modul operasi (setelah screens2, sebelum app) -->
+  <script src="js/modul-bagi.js"></script>
+  <script src="js/peraga-tambah.js"></script>
+  <script src="js/modul-tambah.js"></script>
+  <script src="js/modul-kurang.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
